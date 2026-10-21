@@ -607,13 +607,17 @@ impl ContextOps for PulseContext {
         let old_output_cb = self.output_collection_changed_callback;
         let old_output_ptr = self.output_collection_changed_user_ptr;
 
-        if devtype.contains(DeviceType::INPUT) {
-            self.input_collection_changed_callback = cb;
-            self.input_collection_changed_user_ptr = user_ptr;
-        }
-        if devtype.contains(DeviceType::OUTPUT) {
-            self.output_collection_changed_callback = cb;
-            self.output_collection_changed_user_ptr = user_ptr;
+        // subscribe_notifications waits on the mainloop, so it must run outside this lock.
+        {
+            let _mainloop_lock = self.mainloop.lock_guard();
+            if devtype.contains(DeviceType::INPUT) {
+                self.input_collection_changed_callback = cb;
+                self.input_collection_changed_user_ptr = user_ptr;
+            }
+            if devtype.contains(DeviceType::OUTPUT) {
+                self.output_collection_changed_callback = cb;
+                self.output_collection_changed_user_ptr = user_ptr;
+            }
         }
 
         let mut mask = pulse::SubscriptionMask::empty();
@@ -628,6 +632,7 @@ impl ContextOps for PulseContext {
         mask |= pulse::SubscriptionMask::SERVER;
 
         if let Err(e) = self.subscribe_notifications(mask) {
+            let _mainloop_lock = self.mainloop.lock_guard();
             if devtype.contains(DeviceType::INPUT) {
                 self.input_collection_changed_callback = old_input_cb;
                 self.input_collection_changed_user_ptr = old_input_ptr;
