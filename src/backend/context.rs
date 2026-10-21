@@ -271,7 +271,9 @@ impl PulseContext {
                         cubeb_log!("{} {} index {}", op, dev, index);
                     }
 
-                    if f == pulse::SubscriptionEventFacility::Source {
+                    if f == pulse::SubscriptionEventFacility::Source
+                        && ctx.input_collection_changed_callback.is_some()
+                    {
                         unsafe {
                             ctx.input_collection_changed_callback.unwrap()(
                                 ctx as *mut _ as *mut _,
@@ -279,7 +281,9 @@ impl PulseContext {
                             );
                         }
                     }
-                    if f == pulse::SubscriptionEventFacility::Sink {
+                    if f == pulse::SubscriptionEventFacility::Sink
+                        && ctx.output_collection_changed_callback.is_some()
+                    {
                         unsafe {
                             ctx.output_collection_changed_callback.unwrap()(
                                 ctx as *mut _ as *mut _,
