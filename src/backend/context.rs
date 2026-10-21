@@ -632,13 +632,15 @@ impl ContextOps for PulseContext {
         mask |= pulse::SubscriptionMask::SERVER;
 
         if let Err(e) = self.subscribe_notifications(mask) {
-            if devtype.contains(DeviceType::INPUT) {
-                self.input_collection_changed_callback = old_input_cb;
-                self.input_collection_changed_user_ptr = old_input_ptr;
-            }
-            if devtype.contains(DeviceType::OUTPUT) {
-                self.output_collection_changed_callback = old_output_cb;
-                self.output_collection_changed_user_ptr = old_output_ptr;
+            if cb.is_some() {
+                if devtype.contains(DeviceType::INPUT) {
+                    self.input_collection_changed_callback = old_input_cb;
+                    self.input_collection_changed_user_ptr = old_input_ptr;
+                }
+                if devtype.contains(DeviceType::OUTPUT) {
+                    self.output_collection_changed_callback = old_output_cb;
+                    self.output_collection_changed_user_ptr = old_output_ptr;
+                }
             }
             return Err(e);
         }
